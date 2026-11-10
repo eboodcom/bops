@@ -2,6 +2,7 @@ import { fromBopsWindow } from "@/lib/server/ui-token";
 import { notReady } from "@/lib/server/ready";
 import { orgo } from "@/lib/server/orgo";
 import { bot, getState, stateEpoch } from "@/lib/server/store";
+import { attachmentEligibility } from "@/lib/attachment-policy";
 
 /**
  * Read-only preflight for attaching an existing Orgo computer.
@@ -23,13 +24,8 @@ export async function POST(request: Request) {
   const botId = typeof body.botId === "string" ? body.botId : "";
   const computerId = typeof body.computerId === "string" ? body.computerId : "";
   const target = bot(botId);
-  if (!target?.isMain) return Response.json({ error: "Choose a main bot." }, { status: 400 });
-  if (target.computerId || target.computerStatus === "cloning")
-    return Response.json({ error: "This bot already has a computer or is setting one up." }, { status: 409 });
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(computerId))
-    return Response.json({ error: "Invalid Orgo computer ID." }, { status: 400 });
-  if (getState().bots.some((b) => b.computerId === computerId))
-    return Response.json({ error: "Computer already assigned." }, { status: 409 });
+  const reason = attachmentEligibility(target, computerId, getState().bots.map((b) => b.computerId));
+  if (reason) return Response.json({ error: reason }, { status: reason === "Computer already assigned." || reason.includes("already has") ? 409 : 400 });
 
   const epoch = stateEpoch();
   try {
