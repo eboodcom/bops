@@ -167,3 +167,6 @@ The authenticated attachment preflight now explicitly marks successful ownership
 
 ## Phase 26 default-screen correctness
 At Phase 25 HEAD `a4c2a96aadc0b9d924a7c2ecc572aabc417013a1`, both CI (42904731101) and Existing Orgo attachment checks (42904731151) completed successfully. Phase 26 introduces a pure screenshot screen selector that honors Orgo's advertised default screen when no screenId is requested, and rejects invalid or nonexistent explicit screen IDs. Added unit tests and dedicated workflow coverage. These commits require fresh CI. No VM access or deployment.
+
+## Phase 27 strict identity matching
+Phase 26 HEAD `db581e650dc52bfe742d15360c6f9b597d473fbf` passed both main CI (42905517073) and dedicated attachment CI (42905517087). A gap was found: the attachment and preflight paths previously relied on the requested ID and owner workspace membership but did not independently compare the ID returned by Orgo's computer GET response. Both paths now require an exact case-insensitive UUID match via a shared pure helper. Preflight explicitly reports `identityVerified` and fails closed if mismatched; attachment rejects the assignment before state changes. Unit tests cover mismatches, malformed values and case handling. Phase 27 CI pending. No live Orgo access.
