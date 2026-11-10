@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 type Screen = { id: string; width: number; height: number; default: boolean };
 type ScreensResponse = { screens?: Screen[]; error?: string };
+type ReadinessResponse = { ownerVerified?: boolean; identityVerified?: boolean; readOnlyReady?: boolean; deploymentReady?: boolean; missingReadOnlyEvidence?: string[]; error?: string };
 
 export function AttachedDesktopPreview({ botId }: { botId: string }) {
   const [screens, setScreens] = useState<Screen[]>([]);
+  const [readiness, setReadiness] = useState<ReadinessResponse | null>(null);
   const [selected, setSelected] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [status, setStatus] = useState("Checking attached computer…");
@@ -29,6 +31,16 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
       }
     }
     void load();
+    async function checkReadiness() {
+      try {
+        const response = await fetch("/api/computers/attached-readiness?botId=" + encodeURIComponent(botId), { cache: "no-store" });
+        const data = await response.json() as ReadinessResponse;
+        if (active) setReadiness(response.ok ? data : { error: data.error ?? "Readiness unavailable" });
+      } catch {
+        if (active) setReadiness({ error: "Readiness unavailable" });
+      }
+    }
+    void checkReadiness();
     return () => { active = false; };
   }, [botId]);
 
@@ -66,6 +78,7 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
     <section aria-label="Attached Orgo desktop preview" style={{ maxWidth: 960, margin: "24px auto", padding: 20 }}>
       <h1 style={{ fontSize: 24, fontWeight: 700 }}>Existing Orgo computer</h1>
       <p>Read-only desktop preview. No clicks, typing or autonomous actions are enabled here.</p>
+      <p role="status">Verification: {readiness?.error ?? (readiness ? (readiness.ownerVerified && readiness.identityVerified ? "Computer identity and ownership verified; screenshot and deployment approval still require separate verification." : "Computer identity or ownership not verified.") : "Checking owner and computer identity…")}</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, margin: "18px 0" }}>
         <label htmlFor="attached-screen">Screen</label>
         <select id="attached-screen" value={selected} onChange={(event) => { requestSequence.current++; setBusy(false); setSelected(event.target.value); setImageUrl(null); }} disabled={busy || !screens.length}>
