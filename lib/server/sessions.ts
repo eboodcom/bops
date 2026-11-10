@@ -1403,6 +1403,12 @@ export async function ensureComputer(botId: string): Promise<void> {
   const wsMain = getState().bots.find((x) => x.isMain && workspaceOf(x) === workspaceOf(b));
   const sam = wsMain && workBot(wsMain, getState().bots);
   if (!b || !sam || b.computerStatus === "cloning") return;
+  // External Orgo computers are not Bops templates. Never run automatic setup on one
+  // until the dedicated non-destructive attachment onboarding has been implemented.
+  if (b.attachedOrgoComputer) {
+    console.warn(`[computer] ${b.id}: external Orgo computer attached; automatic setup blocked`);
+    return;
+  }
   // Whose state this is. On a hosted server another user's can be swapped in while this waits on Orgo:
   // their bots, chats and tasks have the same ids, so from then on nothing here touches the state.
   const epoch = stateEpoch();
