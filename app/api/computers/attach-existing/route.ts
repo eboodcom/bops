@@ -12,7 +12,10 @@ export async function POST(request: Request) {
   if (blocked) return blocked;
   let body: { botId?: unknown; computerId?: unknown; confirmation?: unknown };
   try {
-    body = await request.json();
+    const parsed: unknown = await request.json();
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return Response.json({ error: "Expected a JSON object." }, { status: 400 });
+    body = parsed as typeof body;
   } catch {
     return Response.json({ error: "Invalid JSON." }, { status: 400 });
   }
