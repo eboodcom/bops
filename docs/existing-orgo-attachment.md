@@ -77,3 +77,6 @@ This is a **planning estimate**, not a verified percentage of functional complet
 
 ## Read-only ownership evidence (new)
 The preflight now requests the computer and the signed-in account's owner-role workspace list, then checks whether a listed workspace's `desktops` contains the exact computer UUID (case-insensitive). It returns `ownerWorkspaceVerified` and optionally the matching workspace name. If Orgo omits desktop membership from that listing, the check remains unverified; **do not infer ownership** merely because GET /computers/{id} succeeded. No computer mutation occurs. This is an inspection step, not a live attachment authorization or an isolated runtime.
+
+## Strict owner-role verification
+The preflight now uses `ownerWorkspaceForComputer`, which requires **both** an explicit `role: owner` from Orgo and a matching computer ID in the workspace `desktops` list. An omitted role, shared/admin/member role, or missing desktops list returns `ownerWorkspaceVerified: false`. The ownership evidence logic is independently tested in `tests/existing-orgo-ownership.test.mjs`. This remains read-only and does not grant attachment permission.
