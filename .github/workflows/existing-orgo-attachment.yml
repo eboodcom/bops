@@ -1,0 +1,35 @@
+name: Existing Orgo attachment checks
+
+on:
+  push:
+    branches:
+      - ib-attach-existing-orgo-computer
+  pull_request:
+    paths:
+      - 'lib/server/bots.ts'
+      - 'lib/server/orgo.ts'
+      - 'lib/server/sessions.ts'
+      - 'lib/types.ts'
+      - 'app/api/computers/attach-preflight/**'
+      - '.github/workflows/existing-orgo-attachment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Lint changed integration files
+        run: npx eslint lib/server/bots.ts lib/server/orgo.ts lib/server/sessions.ts lib/types.ts app/api/computers/attach-preflight/route.ts
