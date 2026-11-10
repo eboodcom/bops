@@ -3,6 +3,7 @@ import { fromBopsWindow } from "@/lib/server/ui-token";
 import { bot, stateEpoch } from "@/lib/server/store";
 import { orgo, ownedWorkspaces } from "@/lib/server/orgo";
 import { classifyExternalComputer } from "@/lib/external-orgo-diagnostics";
+import { selectExternalTransport } from "@/lib/external-orgo-remote-transport";
 
 /**
  * GET only: Orgo computer metadata and owner-workspace listing.
@@ -25,7 +26,16 @@ export async function GET(request: Request) {
     if (epoch !== stateEpoch() || bot(botId) !== target || !target.attachedOrgoComputer || target.computerId !== computerId)
       return Response.json({ error: "Account or attachment changed. Retry." }, { status: 409 });
     const diagnostics = classifyExternalComputer({ expectedId: computerId, computer, workspaces });
+    const transport = selectExternalTransport({
+      operation: "computer-metadata",
+      attached: Boolean(target.attachedOrgoComputer),
+      ownerVerified: diagnostics.ownerVerified,
+      identityVerified: diagnostics.identityMatches,
+    });
+    if (!transport.permitted)
+      return Response.json({ error: transport.reason }, { status: 403 });
     return Response.json({
+      transport: transport.channel,
       computerId,
       name: computer.name,
       status: computer.status,
