@@ -1,6 +1,7 @@
 import { notReady } from "@/lib/server/ready";
 import { fromBopsWindow } from "@/lib/server/ui-token";
 import { authorizeExternalAttachment } from "@/lib/external-attach-authorization";
+import { sameOriginWrite } from "@/lib/external-desktop-keyboard";
 import { attachExistingOrgoComputer } from "@/lib/server/bots";
 
 /**
@@ -10,6 +11,8 @@ import { attachExistingOrgoComputer } from "@/lib/server/bots";
 export async function POST(request: Request) {
   const blocked = notReady();
   if (blocked) return blocked;
+  if (!sameOriginWrite(request))
+    return Response.json({ error: "Same-origin confirmation required." }, { status: 403 });
   let body: { botId?: unknown; computerId?: unknown; confirmation?: unknown };
   try {
     const parsed: unknown = await request.json();
