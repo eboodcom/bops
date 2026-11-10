@@ -14,12 +14,14 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
   const [status, setStatus] = useState("Checking attached computer…");
   const [busy, setBusy] = useState(false);
   const requestSequence = useRef(0);
+  const screenshotAbort = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
     async function load() {
       try {
-        const response = await fetch("/api/computers/attached-screens?botId=" + encodeURIComponent(botId), { cache: "no-store" });
+        const response = await fetch("/api/computers/attached-screens?botId=" + encodeURIComponent(botId), { cache: "no-store", signal: controller.signal });
         const data = await response.json() as ScreensResponse;
         if (!active) return;
         if (!response.ok || !data.screens?.length) throw new Error(data.error ?? "No screens available");
@@ -33,7 +35,7 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
     void load();
     async function checkReadiness() {
       try {
-        const response = await fetch("/api/computers/attached-readiness?botId=" + encodeURIComponent(botId), { cache: "no-store" });
+        const response = await fetch("/api/computers/attached-readiness?botId=" + encodeURIComponent(botId), { cache: "no-store", signal: controller.signal });
         const data = await response.json() as ReadinessResponse;
         if (active) setReadiness(response.ok ? data : { error: data.error ?? "Readiness unavailable" });
       } catch {
@@ -41,7 +43,7 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
       }
     }
     void checkReadiness();
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); requestSequence.current++; screenshotAbort.current?.abort(); };
   }, [botId]);
 
   useEffect(() => {
@@ -52,10 +54,13 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
     if (!selected || busy) return;
     const sequence = ++requestSequence.current;
     const requestedScreen = selected;
+    screenshotAbort.current?.abort();
+    const controller = new AbortController();
+    screenshotAbort.current = controller;
     setBusy(true);
     setStatus("Loading read-only screenshot…");
     try {
-      const response = await fetch("/api/computers/attached-screenshot?botId=" + encodeURIComponent(botId) + "&screenId=" + encodeURIComponent(requestedScreen), { cache: "no-store" });
+      const response = await fetch("/api/computers/attached-screenshot?botId=" + encodeURIComponent(botId) + "&screenId=" + encodeURIComponent(requestedScreen), { cache: "no-store", signal: controller.signal });
       if (!response.ok) {
         const body = await response.json().catch(() => ({})) as { error?: string };
         throw new Error(body.error ?? "Screenshot unavailable");
@@ -71,6 +76,7 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
       if (sequence === requestSequence.current) setStatus(error instanceof Error ? error.message : "Screenshot unavailable");
     } finally {
       if (sequence === requestSequence.current) setBusy(false);
+      if (screenshotAbort.current === controller) screenshotAbort.current = null;
     }
   }
 
@@ -81,7 +87,7 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
       <p role="status">Verification: {readiness?.error ?? (readiness ? (readiness.ownerVerified && readiness.identityVerified && readiness.computerRunning ? "Computer identity and ownership verified; screenshot and deployment approval still require separate verification." : "Computer identity or ownership not verified.") : "Checking owner and computer identity…")}</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, margin: "18px 0" }}>
         <label htmlFor="attached-screen">Screen</label>
-        <select id="attached-screen" value={selected} onChange={(event) => { requestSequence.current++; setBusy(false); setSelected(event.target.value); setImageUrl(null); }} disabled={busy || !screens.length}>
+        <select id="attached-screen" value={selected} onChange={(event) => { requestSequence.current++; screenshotAbort.current?.abort(); setBusy(false); setSelected(event.target.value); setImageUrl(null); }} disabled={busy || !screens.length}>
           {screens.map((screen) => <option key={screen.id} value={screen.id}>{screen.id} ({screen.width} × {screen.height})</option>)}
         </select>
         <button type="button" onClick={() => void refresh()} disabled={!selected || busy}>Refresh screenshot</button>
