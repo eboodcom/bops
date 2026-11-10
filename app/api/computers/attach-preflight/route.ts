@@ -11,7 +11,7 @@ import { bot, getState } from "@/lib/server/store";
 export async function POST(request: Request) {
   const blocked = notReady();
   if (blocked) return blocked;
-  if (!fromBopsWindow(request))
+  // Hosted/dev Bops accepts any request when BOPS_UI_TOKEN is unset. This\n  // sensitive account inspection must fail closed instead.\n  if (!process.env.BOPS_UI_TOKEN || !fromBopsWindow(request))
     return Response.json({ error: "Only the Bops app can inspect an attachment." }, { status: 403 });
 
   let body: { botId?: unknown; computerId?: unknown };
