@@ -1,0 +1,35 @@
+# EXAMPLE ONLY — never automatically installed or enabled.
+# Requires owner approval, dedicated unprivileged service user, verified
+# artifact integrity and host-specific path/port conflict checks.
+[Unit]
+Description=Bops attached computer isolated health runner
+After=network.target
+
+[Service]
+Type=simple
+User=bops-attached
+Group=bops-attached
+WorkingDirectory=/opt/bops-attached/releases/current
+ExecStart=/usr/bin/node /opt/bops-attached/releases/current/health-server.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+IPAddressDeny=any
+IPAddressAllow=localhost
+CapabilityBoundingSet=
+AmbientCapabilities=
+UMask=0077
+# No writable filesystem paths: health endpoint is read-only.
+ReadOnlyPaths=/opt/bops-attached
+
+[Install]
+WantedBy=multi-user.target
