@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       reason: ownerWorkspace
         ? "Owner workspace found; isolated onboarding is not yet verified. No changes were made."
         : "Computer ownership could not be independently verified from the owner workspace list. No changes were made.",
-    });
+    }, { headers: { "Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff" } });
   } catch {
     return Response.json({ accessible: false, canAttachNow: false, error: "Orgo access could not be verified." }, { status: 403 });
   }
