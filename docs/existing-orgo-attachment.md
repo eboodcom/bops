@@ -80,3 +80,6 @@ The preflight now requests the computer and the signed-in account's owner-role w
 
 ## Strict owner-role verification
 The preflight now uses `ownerWorkspaceForComputer`, which requires **both** an explicit `role: owner` from Orgo and a matching computer ID in the workspace `desktops` list. An omitted role, shared/admin/member role, or missing desktops list returns `ownerWorkspaceVerified: false`. The ownership evidence logic is independently tested in `tests/existing-orgo-ownership.test.mjs`. This remains read-only and does not grant attachment permission.
+
+## Attachment service ownership gate
+The internal `attachExistingOrgoComputer` service now checks `ownedWorkspaces()` and `ownerWorkspaceForComputer()` as well as the Orgo computer GET **before any Bops assignment is stored**. If owner-role workspace membership cannot be confirmed, the service refuses attachment. The preflight and internal service now enforce the same evidence rule. This is not a public authenticated attach route, and it still does not enable computer control or onboarding.
