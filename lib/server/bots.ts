@@ -191,3 +191,42 @@ export async function setComputer(botId: string, mode: "shared" | "own"): Promis
   });
   return { ok: true };
 }
+
+/**
+ * Explicitly attach a user-owned Orgo computer to a main bot without creating a second one.
+ * Call only from an authenticated owner-only action after the user approves the computer ID.
+ * This changes Bops state, not the Orgo computer. Setup is deliberately NOT triggered here.
+ */
+export async function attachExistingOrgoComputer(botId: string, computerId: string): Promise<{ ok: true } | { error: string }> {
+  const b = bot(botId);
+  if (!b || !b.isMain) return { error: "Only a main bot can attach an existing computer." };
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(computerId))
+    return { error: "Enter a valid Orgo computer ID." };
+  if (b.computerId || b.computerStatus === "cloning")
+    return { error: "This bot already has a computer or is setting one up." };
+  if (getState().bots.some((x) => x.computerId === computerId))
+    return { error: "That computer is already assigned to a bot." };
+  const { orgo } = await import("./orgo");
+  let computer: Awaited<ReturnType<typeof orgo.computer>>;
+  try {
+    computer = await orgo.computer(computerId);
+  } catch {
+    return { error: "Orgo did not confirm access to that computer with the signed-in account." };
+  }
+  if (!computer || computer.status !== "running")
+    return { error: "The existing computer must be running before attachment." };
+  // A second check prevents replacing a computer assigned while the Orgo request was in flight.
+  const current = bot(botId);
+  if (!current || current.computerId || getState().bots.some((x) => x.computerId === computerId))
+    return { error: "The bot's computer assignment changed. Please try again." };
+  update(() => {
+    current.computerId = computerId;
+    current.attachedOrgoComputer = true;
+    current.freeComputer = undefined;
+    current.computerNeverReady = undefined;
+    current.computerStatus = "none";
+    current.computerRam = computer.ram;
+    current.tailnet = undefined;
+  });
+  return { ok: true };
+}
