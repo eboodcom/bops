@@ -36,7 +36,8 @@ export async function GET(request: Request) {
       return Response.json({ error: "Computer is not verified and running." }, { status: 403 });
     const screens = publicAttachedScreens(await orgo.screens(computerId));
     if (!stillAttached()) return Response.json({ error: "Attachment changed." }, { status: 409 });
-    const screen = screens[0];
+    const requestedScreenId = url.searchParams.get("screenId");
+    const screen = requestedScreenId ? screens.find((item) => item.id === requestedScreenId) : screens[0];
     if (!screen || typeof screen.id !== "string")
       return Response.json({ error: "No available screen." }, { status: 404 });
     const bytes = await orgo.screenshot(computerId, screen.id, 0.5, "jpeg");
