@@ -3,6 +3,7 @@ import { notReady } from "@/lib/server/ready";
 import { orgo, ownedWorkspaces } from "@/lib/server/orgo";
 import { bot, getState, stateEpoch } from "@/lib/server/store";
 import { attachmentEligibility } from "@/lib/attachment-policy";
+import { ownerWorkspaceForComputer } from "@/lib/attachment-ownership";
 
 /**
  * Read-only preflight for attaching an existing Orgo computer.
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
   const epoch = stateEpoch();
   try {
     const [computer, workspaces] = await Promise.all([orgo.computer(computerId), ownedWorkspaces()]);
-    const ownerWorkspace = workspaces.find((w) => w.desktops?.some((d) => d.id.toLowerCase() === computerId.toLowerCase()));
+    const ownerWorkspace = ownerWorkspaceForComputer(workspaces, computerId);
     // Do not return details from an old account after a hosted state swap.
     if (epoch !== stateEpoch() || bot(botId) !== target ||
         attachmentEligibility(bot(botId), computerId, getState().bots.map((b) => b.computerId)))
