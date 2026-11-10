@@ -1,5 +1,6 @@
 import "server-only";
 import { attachmentEligibility } from "@/lib/attachment-policy";
+import { ownerWorkspaceForComputer } from "@/lib/attachment-ownership";
 import { botChatId, isScreenWatch, live, sharesComputer, workspaceOf, type Bot } from "@/lib/types";
 import { bot, getState, stateEpoch, update } from "./store";
 import { botsNamedInDeleted } from "./deleted";
@@ -203,13 +204,18 @@ export async function attachExistingOrgoComputer(botId: string, computerId: stri
   const reason = attachmentEligibility(b, computerId, getState().bots.map((x) => x.computerId));
   if (reason) return { error: reason };
   const epoch = stateEpoch();
-  const { orgo } = await import("./orgo");
+  const { orgo, ownedWorkspaces } = await import("./orgo");
   let computer: Awaited<ReturnType<typeof orgo.computer>>;
+  let ownerVerified = false;
   try {
-    computer = await orgo.computer(computerId);
+    const [found, workspaces] = await Promise.all([orgo.computer(computerId), ownedWorkspaces()]);
+    computer = found;
+    ownerVerified = Boolean(ownerWorkspaceForComputer(workspaces, computerId));
   } catch {
-    return { error: "Orgo did not confirm access to that computer with the signed-in account." };
+    return { error: "Orgo could not verify the computer and its owner workspace." };
   }
+  if (!ownerVerified)
+    return { error: "Orgo did not independently confirm ownership of this computer." };
   if (!computer || computer.status !== "running")
     return { error: "The existing computer must be running before attachment." };
   // A second check prevents replacing a computer assigned while the Orgo request was in flight.
