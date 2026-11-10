@@ -1,6 +1,9 @@
+import { matchesAttachedComputerId } from "../external-orgo-identity";
 import "server-only";
+import { attachmentEligibility } from "@/lib/attachment-policy";
+import { ownerWorkspaceForComputer } from "@/lib/attachment-ownership";
 import { botChatId, isScreenWatch, live, sharesComputer, workspaceOf, type Bot } from "@/lib/types";
-import { bot, getState, update } from "./store";
+import { bot, getState, stateEpoch, update } from "./store";
 import { botsNamedInDeleted } from "./deleted";
 import { botIdsWaiting } from "./memory-deletes";
 import { ensureInbox } from "./mail";
@@ -93,7 +96,7 @@ export function renameBot(botId: string, name: string): { ok: true } | { error: 
   void import("./phone").then(({ renameAgents }) => renameAgents(botId)).catch((e: Error) => console.warn(`[rename] ${botId} phone: ${e.message}`));
   void import("./channels").then(({ renameInChannels }) => renameInChannels(botId)).catch((e: Error) => console.warn(`[rename] ${botId} channels: ${e.message}`));
   // Just the name on the desktop: Chrome keeps running.
-  if (b.computerId) void import("./desktop").then(({ applyDesktop }) => applyDesktop(b, { restartChrome: false })).catch((e: Error) => console.warn(`[rename] ${botId} desktop: ${e.message}`));
+  if (b.computerId && !b.attachedOrgoComputer) void import("./desktop").then(({ applyDesktop }) => applyDesktop(b, { restartChrome: false })).catch((e: Error) => console.warn(`[rename] ${botId} desktop: ${e.message}`));
   return { ok: true };
 }
 
@@ -188,6 +191,48 @@ export async function setComputer(botId: string, mode: "shared" | "own"): Promis
     b.tailnet = undefined;
     // What its screens showed was on the computer it left.
     for (const key of Object.keys(state.screens ?? {})) if (key.startsWith(`${botId}:`)) delete state.screens![key];
+  });
+  return { ok: true };
+}
+
+/**
+ * Explicitly attach a user-owned Orgo computer to a main bot without creating a second one.
+ * Call only from an authenticated owner-only action after the user approves the computer ID.
+ * This changes Bops state, not the Orgo computer. Setup is deliberately NOT triggered here.
+ */
+export async function attachExistingOrgoComputer(botId: string, computerId: string): Promise<{ ok: true } | { error: string }> {
+  const b = bot(botId);
+  const reason = attachmentEligibility(b, computerId, getState().bots.map((x) => x.computerId));
+  if (reason) return { error: reason };
+  const epoch = stateEpoch();
+  const { orgo, ownedWorkspaces } = await import("./orgo");
+  let computer: Awaited<ReturnType<typeof orgo.computer>>;
+  let ownerVerified = false;
+  try {
+    const [found, workspaces] = await Promise.all([orgo.computer(computerId), ownedWorkspaces()]);
+    computer = found;
+    ownerVerified = Boolean(ownerWorkspaceForComputer(workspaces, computerId));
+  } catch {
+    return { error: "Orgo could not verify the computer and its owner workspace." };
+  }
+  if (!computer || !matchesAttachedComputerId(computerId, computer.id))
+    return { error: "Orgo returned a different computer identity." };
+  if (!ownerVerified)
+    return { error: "Orgo did not independently confirm ownership of this computer." };
+  if (!computer || computer.status !== "running")
+    return { error: "The existing computer must be running before attachment." };
+  // A second check prevents replacing a computer assigned while the Orgo request was in flight.
+  const current = bot(botId);
+  if (epoch !== stateEpoch() || !current || current !== b || attachmentEligibility(current, computerId, getState().bots.map((x) => x.computerId)))
+    return { error: "The bot's computer assignment changed. Please try again." };
+  update(() => {
+    current.computerId = computerId;
+    current.attachedOrgoComputer = true;
+    current.freeComputer = undefined;
+    current.computerNeverReady = undefined;
+    current.computerStatus = "none";
+    current.computerRam = computer.ram;
+    current.tailnet = undefined;
   });
   return { ok: true };
 }

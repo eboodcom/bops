@@ -20,6 +20,8 @@ export type Bot = {
   isMain: boolean;
   /** Its own Orgo computer's UUID. A bot with its own computer gets a fork of the main bot's on first use; one that shares has none. */
   computerId?: string;
+  /** Existing user-owned Orgo computer attached to Bops. Never delete it during Bops resets or failed setup. */
+  attachedOrgoComputer?: boolean;
   /**
    * That computer's memory in GB, as Orgo last said (a copy of it is as big, which the plan must have
    * room for). Unknown until Bops has seen it up; only meaningful while computerId is set.

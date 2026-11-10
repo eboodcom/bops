@@ -1,0 +1,98 @@
+name: Existing Orgo attachment checks
+
+on:
+  push:
+    branches:
+      - ib-attach-existing-orgo-computer
+  pull_request:
+    paths:
+      - 'lib/attachment-policy.ts'
+      - 'lib/external-orgo-identity.ts'
+      - 'tests/external-orgo-identity.test.mjs'
+      - 'lib/external-orgo-remote-transport.ts'
+      - 'tests/external-orgo-remote-transport.test.mjs'
+      - 'runner/attached/**'
+      - 'tests/attached-runner-rate-limit.test.mjs'
+      - 'tests/attached-runner-signed-http.test.mjs'
+      - 'tests/attached-runner-signed-client.test.mjs'
+      - 'tests/attached-runner-protocol.test.mjs'
+      - 'tests/attached-runner-replay-cache.test.mjs'
+      - 'lib/external-runner-client.ts'
+      - 'tests/external-runner-client.test.mjs'
+      - 'tests/attached-runner-auth.test.mjs'
+      - 'tests/attached-runner-health.test.mjs'
+      - 'lib/external-orgo-release-gate.ts'
+      - 'lib/external-orgo-readiness.ts'
+      - 'tests/external-orgo-readiness.test.mjs'
+      - 'lib/external-orgo-rollout.ts'
+      - 'tests/external-orgo-release-gate.test.mjs'
+      - 'tests/external-orgo-rollout.test.mjs'
+      - 'lib/external-orgo-diagnostics.ts'
+      - 'tests/external-orgo-diagnostics.test.mjs'
+      - 'app/api/computers/attached-diagnostics/**'
+      - 'app/api/computers/attached-readiness/**'
+      - 'app/api/computers/attached-screenshot/**'
+      - 'app/api/computers/attached-screens/**'
+      - 'app/attached-desktop/**'
+      - 'components/app/attached-desktop-preview.tsx'
+      - 'components/app/bops-app.tsx'
+      - 'lib/external-desktop-screens.ts'
+      - 'lib/external-desktop-image.ts'
+      - 'lib/external-desktop-selection.ts'
+      - 'tests/external-desktop-selection.test.mjs'
+      - 'tests/external-desktop-image.test.mjs'
+      - 'tests/external-desktop-screens.test.mjs'
+      - 'app/api/computers/attached-click/**'
+      - 'app/api/computers/attached-type/**'
+      - 'lib/external-desktop-keyboard.ts'
+      - 'lib/external-desktop-request.ts'
+      - 'tests/external-desktop-request.test.mjs'
+      - 'tests/external-desktop-keyboard.test.mjs'
+      - 'lib/external-desktop-action.ts'
+      - 'tests/external-desktop-action.test.mjs'
+      - 'lib/external-attach-authorization.ts'
+      - 'tests/external-attach-authorization.test.mjs'
+      - 'app/api/computers/attach-existing/**'
+      - 'lib/external-orgo-onboarding.ts'
+      - 'lib/external-orgo-service.ts'
+      - 'lib/external-orgo-cleanup.ts'
+      - 'tests/external-orgo-service.test.mjs'
+      - 'tests/external-orgo-cleanup.test.mjs'
+      - 'tsconfig.json'
+      - 'lib/external-orgo-runtime-policy.ts'
+      - 'tests/external-orgo-runtime-policy.test.mjs'
+      - 'tests/external-orgo-onboarding.test.mjs'
+      - 'lib/attachment-ownership.ts'
+      - 'tests/existing-orgo-ownership.test.mjs'
+      - 'tests/existing-orgo-attachment.test.mjs'
+      - 'lib/server/bots.ts'
+      - 'lib/server/orgo.ts'
+      - 'lib/server/sessions.ts'
+      - 'lib/types.ts'
+      - 'app/api/computers/attach-preflight/**'
+      - '.github/workflows/existing-orgo-attachment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Generate Next.js route types
+        run: npx next typegen
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Test attachment policy
+        run: node --experimental-strip-types --test tests/existing-orgo-attachment.test.mjs tests/existing-orgo-ownership.test.mjs tests/external-orgo-onboarding.test.mjs tests/external-orgo-runtime-policy.test.mjs tests/external-attach-authorization.test.mjs tests/external-orgo-service.test.mjs tests/external-orgo-cleanup.test.mjs tests/external-orgo-diagnostics.test.mjs tests/external-orgo-release-gate.test.mjs tests/external-orgo-rollout.test.mjs tests/attached-runner-health.test.mjs tests/attached-runner-auth.test.mjs tests/external-runner-client.test.mjs tests/external-orgo-remote-transport.test.mjs tests/attached-runner-protocol.test.mjs tests/attached-runner-replay-cache.test.mjs tests/attached-runner-signed-http.test.mjs tests/attached-runner-signed-client.test.mjs tests/attached-runner-rate-limit.test.mjs tests/external-desktop-action.test.mjs tests/external-desktop-keyboard.test.mjs tests/external-desktop-request.test.mjs tests/external-desktop-screens.test.mjs tests/external-desktop-image.test.mjs tests/external-desktop-selection.test.mjs tests/external-orgo-readiness.test.mjs tests/external-orgo-identity.test.mjs
+      - name: Lint changed integration files
+        run: npx eslint lib/external-orgo-remote-transport.ts lib/external-runner-client.ts lib/external-orgo-release-gate.ts lib/external-orgo-readiness.ts lib/external-orgo-rollout.ts lib/external-orgo-diagnostics.ts app/api/computers/attached-diagnostics/route.ts app/api/computers/attached-readiness/route.ts app/api/computers/attached-screenshot/route.ts app/api/computers/attached-screens/route.ts app/attached-desktop/page.tsx components/app/attached-desktop-preview.tsx components/app/bops-app.tsx lib/external-desktop-screens.ts lib/external-desktop-image.ts lib/external-desktop-selection.ts app/api/computers/attached-click/route.ts app/api/computers/attached-type/route.ts lib/external-desktop-keyboard.ts lib/external-desktop-request.ts lib/external-desktop-action.ts lib/external-orgo-service.ts lib/external-orgo-cleanup.ts app/api/computers/attach-existing/route.ts lib/external-attach-authorization.ts lib/external-orgo-runtime-policy.ts lib/external-orgo-onboarding.ts lib/attachment-ownership.ts lib/attachment-policy.ts lib/external-orgo-identity.ts lib/server/bots.ts lib/server/orgo.ts lib/server/sessions.ts lib/types.ts app/api/computers/attach-preflight/route.ts
