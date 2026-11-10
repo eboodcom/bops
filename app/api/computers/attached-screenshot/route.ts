@@ -4,6 +4,7 @@ import { bot, stateEpoch } from "@/lib/server/store";
 import { orgo, ownedWorkspaces } from "@/lib/server/orgo";
 import { classifyExternalComputer } from "@/lib/external-orgo-diagnostics";
 import { selectExternalTransport } from "@/lib/external-orgo-remote-transport";
+import { publicAttachedScreens } from "@/lib/external-desktop-screens";
 
 /**
  * Read-only Orgo REST screenshot; no runner, shell, installation or input.
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
     });
     if (!transport.permitted || !diagnostics.running)
       return Response.json({ error: "Computer is not verified and running." }, { status: 403 });
-    const screens = await orgo.screens(computerId);
+    const screens = publicAttachedScreens(await orgo.screens(computerId));
     if (!stillAttached()) return Response.json({ error: "Attachment changed." }, { status: 409 });
     const screen = screens[0];
     if (!screen || typeof screen.id !== "string")
