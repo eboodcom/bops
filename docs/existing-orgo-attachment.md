@@ -56,3 +56,11 @@ Do not interpret successful typechecking as evidence that these integration scen
 ## Verified CI checkpoint
 - Commit `ba13d80d5778caf8d7a4388bac7e6307dc1fe5fd`: dedicated **Existing Orgo attachment checks** workflow run `42860969803` completed successfully (Next.js route-type generation, TypeScript check, targeted lint).
 - Broader repository CI and live integration testing are separate gates; a green static check does not authorize computer mutation or deployment.
+
+## Next implementation gate: isolated owner-approved onboarding
+1. Implement a hosted owner-authenticated attach action; the current read-only preflight is not an attach action and `fromBopsWindow` alone is not sufficient when its token is unset.
+2. Before enabling tasks, verify the Orgo computer's ownership/workspace and current running state without writing to it. Do not rely on a matching UUID alone.
+3. Introduce an explicit attached-computer execution path that does not invoke `ensureComputer`, disk growth, desktop customization, tailnet changes, scrubbing, runner replacement, or creation of another computer.
+4. Define and approve the precise Bops-owned installation directory and services; test read-only first, then narrowly scoped installation only after owner approval.
+5. Exercise lifecycle and authorization acceptance tests against mocks before any live operation. The passing CI static checks are not substitutes for those tests.
+6. Only then prepare a Contabo deployment and request explicit approval for the live `swift-prism` retry.
