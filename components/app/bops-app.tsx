@@ -1860,6 +1860,7 @@ function SelfHosting({ state }: { state: AppState }) {
           <div key={b.id} className="flex items-center border-b border-[#F0F0EE] py-2 last:border-0">
             <span className="w-[200px] text-[13px] font-medium">{b.name}</span>
             <span className="font-mono text-[12px] text-[#3A3A38]">{!state.shared && state.host === "mac" ? "this Mac" : b.computerId ? `${b.computerId}${b.tailnet ? ` · ${b.tailnet.ip}` : ""}` : sharesComputer(b) ? `shares ${workBot(b, state.bots).name}'s` : "none yet"}</span>
+            {b.isMain && b.attachedOrgoComputer && b.computerId && <a className="ml-3 text-[12px] font-medium underline" href={`/attached-desktop?botId=${encodeURIComponent(b.id)}`} target="_blank" rel="noopener noreferrer">View desktop (read-only)</a>}
           </div>
         ))}
       </div>
