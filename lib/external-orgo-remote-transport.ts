@@ -6,6 +6,7 @@
  */
 export type ExternalTransportOperation =
   | "computer-metadata"
+  | "screenshot"
   | "runner-health"
   | "desktop-input"
   | "task-execution"
@@ -25,7 +26,7 @@ export function selectExternalTransport(input: {
 }): ExternalTransportDecision {
   if (!input.attached || !input.ownerVerified || !input.identityVerified)
     return { permitted: false, reason: "Attachment identity and ownership must be verified." };
-  if (input.operation === "computer-metadata")
+  if (input.operation === "computer-metadata" || input.operation === "screenshot")
     return { permitted: true, channel: "orgo-read-only-api" };
   return { permitted: false, reason: "No audited cross-host runner transport exists for this operation." };
 }
