@@ -6,6 +6,8 @@ on:
       - ib-attach-existing-orgo-computer
   pull_request:
     paths:
+      - 'lib/attachment-policy.ts'
+      - 'tests/existing-orgo-attachment.test.mjs'
       - 'lib/server/bots.ts'
       - 'lib/server/orgo.ts'
       - 'lib/server/sessions.ts'
