@@ -52,3 +52,7 @@ Do not run the attachment service, call any computer mutation API, or try a live
 | Safe onboarding trial | Only explicitly approved, isolated Bops files/services created; existing data preserved |
 
 Do not interpret successful typechecking as evidence that these integration scenarios passed. The live retry requires separate owner approval and verified integration tests.
+
+## Verified CI checkpoint
+- Commit `ba13d80d5778caf8d7a4388bac7e6307dc1fe5fd`: dedicated **Existing Orgo attachment checks** workflow run `42860969803` completed successfully (Next.js route-type generation, TypeScript check, targeted lint).
+- Broader repository CI and live integration testing are separate gates; a green static check does not authorize computer mutation or deployment.
