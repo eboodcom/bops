@@ -5,6 +5,7 @@ import { orgo, ownedWorkspaces } from "@/lib/server/orgo";
 import { classifyExternalComputer } from "@/lib/external-orgo-diagnostics";
 import { selectExternalTransport } from "@/lib/external-orgo-remote-transport";
 import { publicAttachedScreens } from "@/lib/external-desktop-screens";
+import { validAttachedJpeg } from "@/lib/external-desktop-image";
 
 /**
  * Read-only Orgo REST screenshot; no runner, shell, installation or input.
@@ -42,8 +43,8 @@ export async function GET(request: Request) {
       return Response.json({ error: "No available screen." }, { status: 404 });
     const bytes = await orgo.screenshot(computerId, screen.id, 0.5, "jpeg");
     if (!stillAttached()) return Response.json({ error: "Attachment changed." }, { status: 409 });
-    if (bytes.byteLength > 8 * 1024 * 1024)
-      return Response.json({ error: "Screenshot too large." }, { status: 502 });
+    if (!validAttachedJpeg(bytes))
+      return Response.json({ error: "Invalid or oversized JPEG screenshot." }, { status: 502 });
     return new Response(Buffer.from(bytes), {
       headers: {
         "Content-Type": "image/jpeg",
