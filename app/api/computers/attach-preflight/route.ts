@@ -37,7 +37,8 @@ export async function POST(request: Request) {
   const epoch = stateEpoch();
   try {
     const [computer, workspaces] = await Promise.all([orgo.computer(computerId), ownedWorkspaces()]);
-    const ownerWorkspace = ownerWorkspaceForComputer(workspaces, computerId);
+    const identityVerified = typeof computer.id === "string" && computer.id.toLowerCase() === computerId.toLowerCase();
+    const ownerWorkspace = identityVerified ? ownerWorkspaceForComputer(workspaces, computerId) : undefined;
     // Do not return details from an old account after a hosted state swap.
     if (epoch !== stateEpoch() || bot(botId) !== target ||
         attachmentEligibility(bot(botId), computerId, getState().bots.map((b) => b.computerId)))
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
     return Response.json({
       accessible: true,
       ownerWorkspaceVerified: Boolean(ownerWorkspace),
+      identityVerified,
       ownerWorkspaceName: ownerWorkspace?.name,
       running: computer.status === "running",
       name: computer.name,
@@ -52,7 +54,9 @@ export async function POST(request: Request) {
       computerId,
       canAttachNow: false,
       onboardingPlan: ownerWorkspace ? planExternalOnboarding(computerId) : undefined,
-      reason: ownerWorkspace
+      reason: !identityVerified
+        ? "Orgo returned a different computer identity. No changes were made."
+        : ownerWorkspace
         ? "Owner workspace found; isolated onboarding is not yet verified. No changes were made."
         : "Computer ownership could not be independently verified from the owner workspace list. No changes were made.",
     }, { headers: { "Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff" } });
