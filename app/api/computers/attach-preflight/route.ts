@@ -1,7 +1,7 @@
 import { fromBopsWindow } from "@/lib/server/ui-token";
 import { notReady } from "@/lib/server/ready";
 import { orgo } from "@/lib/server/orgo";
-import { bot, getState } from "@/lib/server/store";
+import { bot, getState, stateEpoch } from "@/lib/server/store";
 
 /**
  * Read-only preflight for attaching an existing Orgo computer.
@@ -29,8 +29,12 @@ export async function POST(request: Request) {
   if (getState().bots.some((b) => b.computerId === computerId))
     return Response.json({ error: "Computer already assigned." }, { status: 409 });
 
+  const epoch = stateEpoch();
   try {
     const computer = await orgo.computer(computerId);
+    // Do not return details from an old account after a hosted state swap.
+    if (epoch !== stateEpoch() || bot(botId) !== target)
+      return Response.json({ error: "Account state changed. Retry the check." }, { status: 409 });
     return Response.json({
       accessible: true,
       running: computer.status === "running",
