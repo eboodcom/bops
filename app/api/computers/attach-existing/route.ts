@@ -2,6 +2,7 @@ import { notReady } from "@/lib/server/ready";
 import { fromBopsWindow } from "@/lib/server/ui-token";
 import { authorizeExternalAttachment } from "@/lib/external-attach-authorization";
 import { sameOriginWrite } from "@/lib/external-desktop-keyboard";
+import { parseDesktopJson } from "@/lib/external-desktop-request";
 import { attachExistingOrgoComputer } from "@/lib/server/bots";
 
 /**
@@ -13,15 +14,10 @@ export async function POST(request: Request) {
   if (blocked) return blocked;
   if (!sameOriginWrite(request))
     return Response.json({ error: "Same-origin confirmation required." }, { status: 403 });
-  let body: { botId?: unknown; computerId?: unknown; confirmation?: unknown };
-  try {
-    const parsed: unknown = await request.json();
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
-      return Response.json({ error: "Expected a JSON object." }, { status: 400 });
-    body = parsed as typeof body;
-  } catch {
-    return Response.json({ error: "Invalid JSON." }, { status: 400 });
-  }
+  const body = await parseDesktopJson(request);
+  if (!body) return Response.json({ error: "Invalid or oversized JSON." }, { status: 400 });
+  if (Object.keys(body).sort().join(",") !== "botId,computerId,confirmation")
+    return Response.json({ error: "Unexpected attachment fields." }, { status: 400 });
   const denied = authorizeExternalAttachment({
     uiTokenConfigured: Boolean(process.env.BOPS_UI_TOKEN),
     authenticatedWindow: fromBopsWindow(request),
