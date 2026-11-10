@@ -1,6 +1,6 @@
 import "server-only";
 import { botChatId, isScreenWatch, live, sharesComputer, workspaceOf, type Bot } from "@/lib/types";
-import { bot, getState, update } from "./store";
+import { bot, getState, stateEpoch, update } from "./store";
 import { botsNamedInDeleted } from "./deleted";
 import { botIdsWaiting } from "./memory-deletes";
 import { ensureInbox } from "./mail";
@@ -206,6 +206,7 @@ export async function attachExistingOrgoComputer(botId: string, computerId: stri
     return { error: "This bot already has a computer or is setting one up." };
   if (getState().bots.some((x) => x.computerId === computerId))
     return { error: "That computer is already assigned to a bot." };
+  const epoch = stateEpoch();
   const { orgo } = await import("./orgo");
   let computer: Awaited<ReturnType<typeof orgo.computer>>;
   try {
@@ -217,7 +218,7 @@ export async function attachExistingOrgoComputer(botId: string, computerId: stri
     return { error: "The existing computer must be running before attachment." };
   // A second check prevents replacing a computer assigned while the Orgo request was in flight.
   const current = bot(botId);
-  if (!current || current.computerId || getState().bots.some((x) => x.computerId === computerId))
+  if (epoch !== stateEpoch() || !current || current !== b || !current.isMain || current.computerId || getState().bots.some((x) => x.computerId === computerId))
     return { error: "The bot's computer assignment changed. Please try again." };
   update(() => {
     current.computerId = computerId;
