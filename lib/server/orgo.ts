@@ -911,6 +911,9 @@ export const orgo = {
    * computers made there before sign-in are Bops' too, when the account that signed in can reach them).
    */
   remove: async (computerId: string) => {
+    // Last-line defence: a user-owned attachment is never a Bops deletion target.
+    if (getState().bots.some((b) => b.computerId === computerId && b.attachedOrgoComputer))
+      throw new Error("Refusing to delete an externally attached Orgo computer");
     const epoch = stateEpoch();
     const c = await call<{ project_id?: string; workspace_id?: string }>("GET", `/computers/${computerId}`);
     const where = c.workspace_id ?? c.project_id;
