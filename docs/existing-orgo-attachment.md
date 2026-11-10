@@ -74,3 +74,6 @@ Estimated overall readiness **55%** as of this checkpoint, with the following we
 - 0/20: isolated non-destructive runtime onboarding and actual Boppy control.
 - 0/10: Contabo deployment and live owner-approved retry.
 This is a **planning estimate**, not a verified percentage of functional completeness. The remaining runtime integration is the highest-risk part; no live computer operations are authorized.
+
+## Read-only ownership evidence (new)
+The preflight now requests the computer and the signed-in account's owner-role workspace list, then checks whether a listed workspace's `desktops` contains the exact computer UUID (case-insensitive). It returns `ownerWorkspaceVerified` and optionally the matching workspace name. If Orgo omits desktop membership from that listing, the check remains unverified; **do not infer ownership** merely because GET /computers/{id} succeeded. No computer mutation occurs. This is an inspection step, not a live attachment authorization or an isolated runtime.
