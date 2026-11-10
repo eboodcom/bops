@@ -4,11 +4,13 @@
  * Not started automatically. An owner-approved installation is required.
  */
 import { createServer } from "node:http";
+import { authenticatedRunnerRequest, validRunnerToken } from "./auth.mjs";
 
 export const HOST = "127.0.0.1";
 export const DEFAULT_PORT = 43211;
 
-export function createAttachedHealthServer() {
+export function createAttachedHealthServer(token) {
+  if (!validRunnerToken(token)) throw new Error("A strong runner token is required.");
   return createServer((request, response) => {
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -16,6 +18,11 @@ export function createAttachedHealthServer() {
     if (request.method !== "GET" || request.url !== "/health") {
       response.writeHead(404);
       response.end(JSON.stringify({ error: "Not found" }));
+      return;
+    }
+    if (!authenticatedRunnerRequest(request.headers.authorization, token)) {
+      response.writeHead(401);
+      response.end(JSON.stringify({ error: "Unauthorized" }));
       return;
     }
     response.writeHead(200);
@@ -38,6 +45,6 @@ export function parseRunnerPort(value) {
 }
 
 if (process.argv[1] && import.meta.url === new URL("file://" + process.argv[1]).href) {
-  const server = createAttachedHealthServer();
+  const server = createAttachedHealthServer(process.env.BOPS_ATTACHED_RUNNER_TOKEN);
   server.listen(parseRunnerPort(process.env.BOPS_ATTACHED_PORT), HOST);
 }
