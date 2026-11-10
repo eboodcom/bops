@@ -14,7 +14,7 @@ export function externalCleanupTargets(input: {
     return { allowed: false, reason: "External cleanup requires attachment and explicit owner approval.", paths: [] };
   if (input.service !== "bops-attached-runner")
     return { allowed: false, reason: "Service is not owned by the isolated runner.", paths: [] };
-  if (!input.paths.every(isWithinExternalRunnerRoot))
+  if (input.paths.length === 0 || !input.paths.every(isWithinExternalRunnerRoot))
     return { allowed: false, reason: "Cleanup target is outside the isolated runner directory.", paths: [] };
   if (input.paths.some((path) => path === EXTERNAL_RUNNER_ROOT + "/data"))
     return { allowed: false, reason: "Persistent runner data requires a separate explicit removal decision.", paths: [] };
