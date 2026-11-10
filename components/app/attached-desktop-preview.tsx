@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Screen = { id: string; width: number; height: number; default: boolean };
 type ScreensResponse = { screens?: Screen[]; error?: string };
@@ -11,6 +11,7 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [status, setStatus] = useState("Checking attached computer…");
   const [busy, setBusy] = useState(false);
+  const requestSequence = useRef(0);
 
   useEffect(() => {
     let active = true;
@@ -37,10 +38,12 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
 
   async function refresh() {
     if (!selected || busy) return;
+    const sequence = ++requestSequence.current;
+    const requestedScreen = selected;
     setBusy(true);
     setStatus("Loading read-only screenshot…");
     try {
-      const response = await fetch("/api/computers/attached-screenshot?botId=" + encodeURIComponent(botId) + "&screenId=" + encodeURIComponent(selected), { cache: "no-store" });
+      const response = await fetch("/api/computers/attached-screenshot?botId=" + encodeURIComponent(botId) + "&screenId=" + encodeURIComponent(requestedScreen), { cache: "no-store" });
       if (!response.ok) {
         const body = await response.json().catch(() => ({})) as { error?: string };
         throw new Error(body.error ?? "Screenshot unavailable");
@@ -49,12 +52,13 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
         throw new Error("Unexpected screenshot response");
       const blob = await response.blob();
       if (blob.size > 8 * 1024 * 1024) throw new Error("Screenshot too large");
+      if (sequence !== requestSequence.current) return;
       setImageUrl(URL.createObjectURL(blob));
       setStatus("Screenshot loaded. This is a still image, not live control.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Screenshot unavailable");
+      if (sequence === requestSequence.current) setStatus(error instanceof Error ? error.message : "Screenshot unavailable");
     } finally {
-      setBusy(false);
+      if (sequence === requestSequence.current) setBusy(false);
     }
   }
 
@@ -64,7 +68,7 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
       <p>Read-only desktop preview. No clicks, typing or autonomous actions are enabled here.</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, margin: "18px 0" }}>
         <label htmlFor="attached-screen">Screen</label>
-        <select id="attached-screen" value={selected} onChange={(event) => { setSelected(event.target.value); setImageUrl(null); }} disabled={busy || !screens.length}>
+        <select id="attached-screen" value={selected} onChange={(event) => { requestSequence.current++; setBusy(false); setSelected(event.target.value); setImageUrl(null); }} disabled={busy || !screens.length}>
           {screens.map((screen) => <option key={screen.id} value={screen.id}>{screen.id} ({screen.width} × {screen.height})</option>)}
         </select>
         <button type="button" onClick={() => void refresh()} disabled={!selected || busy}>Refresh screenshot</button>
