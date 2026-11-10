@@ -164,3 +164,6 @@ The desktop preview now aborts in-flight screenshot requests when the user switc
 
 ## Phase 25 privacy and stale-preview cleanup
 The authenticated attachment preflight now explicitly marks successful ownership/computer metadata responses `Cache-Control: no-store, private` and `X-Content-Type-Options: nosniff`. Switching a desktop screen clears the prior still and displays an explicit refresh instruction, rather than leaving a stale screenshot-success message. Phase 24 dedicated attachment CI passed (run 42903898665); main CI was still in progress when inspected. These Phase 25 commits require fresh CI. No deployment, attach flag changes, or Orgo VM interaction.
+
+## Phase 26 default-screen correctness
+At Phase 25 HEAD `a4c2a96aadc0b9d924a7c2ecc572aabc417013a1`, both CI (42904731101) and Existing Orgo attachment checks (42904731151) completed successfully. Phase 26 introduces a pure screenshot screen selector that honors Orgo's advertised default screen when no screenId is requested, and rejects invalid or nonexistent explicit screen IDs. Added unit tests and dedicated workflow coverage. These commits require fresh CI. No VM access or deployment.
