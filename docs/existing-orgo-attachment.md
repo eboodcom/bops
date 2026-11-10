@@ -131,3 +131,6 @@ The dedicated CI job identified a genuine path-validation bug: `/opt/bops-attach
 
 ## Phase 14 request-body hardening
 Desktop click and typing routes previously trusted `Content-Length` for their 2 KiB limits, allowing requests without that header to bypass the intended bound. Both now use `parseDesktopJson`, which counts actual streamed bytes, rejects oversize bodies and invalid JSON, and validates strict object fields. Tests include chunked bodies without a Content-Length header. This change is code-only; desktop control remains default-off, and live Orgo operations have not been performed. Dedicated CI must pass before deployment.
+
+## Phase 15 read-only screen discovery for UI integration
+A new `GET /api/computers/attached-screens?botId=...` endpoint provides a minimal owner-verified, running-computer screen list (`id`, `width`, `height`, `default`). It excludes Orgo VNC ports and stream credentials, rejects malformed IDs, duplicate screens, invalid dimensions, and oversized lists. The screenshot route now uses the same validation. This is the missing screen-discovery primitive for a future desktop preview and single-click interface. It is not yet a user-facing UI and has not been deployed or exercised against swift-prism. Phase 13's two CI workflows passed; newer phases require their own green CI results.
