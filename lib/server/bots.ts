@@ -1,3 +1,4 @@
+import { matchesAttachedComputerId } from "../external-orgo-identity";
 import "server-only";
 import { attachmentEligibility } from "@/lib/attachment-policy";
 import { ownerWorkspaceForComputer } from "@/lib/attachment-ownership";
@@ -214,7 +215,7 @@ export async function attachExistingOrgoComputer(botId: string, computerId: stri
   } catch {
     return { error: "Orgo could not verify the computer and its owner workspace." };
   }
-  if (!computer || typeof computer.id !== "string" || computer.id.toLowerCase() !== computerId.toLowerCase())
+  if (!computer || !matchesAttachedComputerId(computerId, computer.id))
     return { error: "Orgo returned a different computer identity." };
   if (!ownerVerified)
     return { error: "Orgo did not independently confirm ownership of this computer." };
