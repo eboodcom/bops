@@ -4,6 +4,7 @@ import { orgo, ownedWorkspaces } from "@/lib/server/orgo";
 import { bot, getState, stateEpoch } from "@/lib/server/store";
 import { attachmentEligibility } from "@/lib/attachment-policy";
 import { ownerWorkspaceForComputer } from "@/lib/attachment-ownership";
+import { planExternalOnboarding } from "@/lib/external-orgo-onboarding";
 
 /**
  * Read-only preflight for attaching an existing Orgo computer.
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
       status: computer.status,
       computerId,
       canAttachNow: false,
+      onboardingPlan: ownerWorkspace ? planExternalOnboarding(computerId) : undefined,
       reason: ownerWorkspace
         ? "Owner workspace found; isolated onboarding is not yet verified. No changes were made."
         : "Computer ownership could not be independently verified from the owner workspace list. No changes were made.",
