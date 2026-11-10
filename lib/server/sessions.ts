@@ -1650,6 +1650,12 @@ async function heal(botId: string, computerId: string, known: boolean): Promise<
   const b = bot(botId);
   // Another user's state came in meanwhile, the bot moved on already, or a task is setting this one up (it finds out itself).
   if (epoch !== stateEpoch() || !b || b.computerId !== computerId || b.computerStatus === "cloning") return false;
+  if (b.attachedOrgoComputer) {
+    // An unreachable user-owned computer must not be silently replaced with a paid VM.
+    update(() => { b.computerStatus = "error"; });
+    console.warn(`[computer] attached external computer ${computerId} is unreachable; manual review required`);
+    return true;
+  }
   console.warn(`[computer] ${b.name}'s computer ${computerId} is gone from Orgo; moving it to another`);
   forgetComputer(b);
   // Its bots work on this Mac now: their next cloud task gets it a computer.
