@@ -7,6 +7,8 @@ on:
   pull_request:
     paths:
       - 'lib/attachment-policy.ts'
+      - 'lib/external-orgo-onboarding.ts'
+      - 'tests/external-orgo-onboarding.test.mjs'
       - 'lib/attachment-ownership.ts'
       - 'tests/existing-orgo-ownership.test.mjs'
       - 'tests/existing-orgo-attachment.test.mjs'
@@ -38,6 +40,6 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
       - name: Test attachment policy
-        run: node --experimental-strip-types --test tests/existing-orgo-attachment.test.mjs tests/existing-orgo-ownership.test.mjs
+        run: node --experimental-strip-types --test tests/existing-orgo-attachment.test.mjs tests/existing-orgo-ownership.test.mjs tests/external-orgo-onboarding.test.mjs
       - name: Lint changed integration files
-        run: npx eslint lib/attachment-ownership.ts lib/attachment-policy.ts lib/server/bots.ts lib/server/orgo.ts lib/server/sessions.ts lib/types.ts app/api/computers/attach-preflight/route.ts
+        run: npx eslint lib/external-orgo-onboarding.ts lib/attachment-ownership.ts lib/attachment-policy.ts lib/server/bots.ts lib/server/orgo.ts lib/server/sessions.ts lib/types.ts app/api/computers/attach-preflight/route.ts
