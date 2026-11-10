@@ -214,7 +214,7 @@ export async function attachExistingOrgoComputer(botId: string, computerId: stri
     return { error: "The existing computer must be running before attachment." };
   // A second check prevents replacing a computer assigned while the Orgo request was in flight.
   const current = bot(botId);
-  if (epoch !== stateEpoch() || !current || current !== b || !current.isMain || current.computerId || getState().bots.some((x) => x.computerId === computerId))
+  if (epoch !== stateEpoch() || !current || current !== b || attachmentEligibility(current, computerId, getState().bots.map((x) => x.computerId)))
     return { error: "The bot's computer assignment changed. Please try again." };
   update(() => {
     current.computerId = computerId;
