@@ -40,3 +40,8 @@ test("does not mutate candidate or existing assignments during validation", () =
   assert.deepEqual(candidate, main);
   assert.deepEqual(assigned, [undefined, "another-id"]);
 });
+
+test("rejects duplicate UUID even when its casing differs", () => {
+  assert.equal(attachmentEligibility(main, id.toUpperCase(), [id]), "Computer already assigned.");
+  assert.equal(attachmentEligibility(main, id, [id.toUpperCase()]), "Computer already assigned.");
+});
