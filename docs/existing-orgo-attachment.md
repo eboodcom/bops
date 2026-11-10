@@ -64,3 +64,13 @@ Do not interpret successful typechecking as evidence that these integration scen
 4. Define and approve the precise Bops-owned installation directory and services; test read-only first, then narrowly scoped installation only after owner approval.
 5. Exercise lifecycle and authorization acceptance tests against mocks before any live operation. The passing CI static checks are not substitutes for those tests.
 6. Only then prepare a Contabo deployment and request explicit approval for the live `swift-prism` retry.
+
+## Progress reporting (engineering estimate, not a test result)
+Estimated overall readiness **55%** as of this checkpoint, with the following weighted gates:
+- 20/20: basic Orgo access verification and external computer identification (previously demonstrated with owner key; must be reverified at retry).
+- 15/20: ownership/lifecycle safety guards (implemented; integration audit outstanding).
+- 10/15: preflight and attachment service (read-only route and internal service exist; owner-authorized attach UI/API missing).
+- 10/15: automated validation (prior static CI passed; new executable policy tests pending).
+- 0/20: isolated non-destructive runtime onboarding and actual Boppy control.
+- 0/10: Contabo deployment and live owner-approved retry.
+This is a **planning estimate**, not a verified percentage of functional completeness. The remaining runtime integration is the highest-risk part; no live computer operations are authorized.
