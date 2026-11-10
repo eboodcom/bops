@@ -1,4 +1,5 @@
 import { notReady } from "@/lib/server/ready";
+import { parseDesktopJson } from "@/lib/external-desktop-request";
 import { fromBopsWindow } from "@/lib/server/ui-token";
 import { bot, stateEpoch } from "@/lib/server/store";
 import { orgo, ownedWorkspaces } from "@/lib/server/orgo";
@@ -16,19 +17,10 @@ export async function POST(request: Request) {
   const authenticated = Boolean(process.env.BOPS_UI_TOKEN) && fromBopsWindow(request) && sameOriginWrite(request);
   if (!authenticated || process.env.BOPS_EXTERNAL_ORGO_DESKTOP_CLICK_ENABLED !== "true")
     return Response.json({ error: "Attached desktop control is disabled or unauthorized." }, { status: 403 });
-  let payload: Record<string, unknown>;
-  try {
-    if (Number(request.headers.get("content-length") ?? "0") > 2048)
-      return Response.json({ error: "Request too large." }, { status: 413 });
-    const body: unknown = await request.json();
-    if (!body || typeof body !== "object" || Array.isArray(body))
-      return Response.json({ error: "Expected object." }, { status: 400 });
-    payload = body as Record<string, unknown>;
-    if (Object.keys(payload).sort().join(",") !== "botId,confirmation,screenId,x,y")
-      return Response.json({ error: "Unexpected request fields." }, { status: 400 });
-  } catch {
-    return Response.json({ error: "Invalid JSON." }, { status: 400 });
-  }
+  const payload = await parseDesktopJson(request);
+  if (!payload) return Response.json({ error: "Invalid or oversized JSON request." }, { status: 400 });
+  if (Object.keys(payload).sort().join(",") !== "botId,confirmation,screenId,x,y")
+    return Response.json({ error: "Unexpected request fields." }, { status: 400 });
   if (typeof payload.botId !== "string" || typeof payload.screenId !== "string")
     return Response.json({ error: "Bot and screen required." }, { status: 400 });
   const target = bot(payload.botId);
