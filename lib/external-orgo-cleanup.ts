@@ -1,4 +1,4 @@
-import { EXTERNAL_RUNNER_ROOT, isWithinExternalRunnerRoot } from "./external-orgo-service";
+import { EXTERNAL_RUNNER_ROOT, isWithinExternalRunnerRoot } from "./external-orgo-service.ts";
 
 /**
  * Cleanup planner only. A future executor must additionally verify ownership,
