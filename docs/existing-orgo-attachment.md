@@ -32,3 +32,23 @@ Never commit an Orgo API key. Never delete, stop, suspend, resize or reconfigure
 
 ## Explicit stop point before retrying swift-prism
 Do not run the attachment service, call any computer mutation API, or try a live Boppy task until (1) owner authentication is valid on the hosted deployment, (2) owner/workspace is independently confirmed, (3) an isolated non-destructive onboarding plan is implemented, (4) lifecycle operations are audited, and (5) build/integration tests pass. Recheck consent immediately before the first live computer operation. The owner's personal Orgo workspace must remain independently usable.
+
+## Required acceptance tests before live retry
+
+| Scenario | Required outcome |
+| --- | --- |
+| Valid owner + existing running computer | Read-only preflight reports it is accessible; no VM mutation |
+| Missing BOPS_UI_TOKEN | Preflight returns 403 |
+| Invalid computer UUID | Preflight returns 400 |
+| Existing bot already assigned a computer | Preflight returns 409 |
+| Computer already assigned to another bot | Preflight returns 409 |
+| Unreachable/unauthorized computer | Preflight fails without storing an assignment |
+| Account changes during Orgo request | Attachment is rejected |
+| Attached computer fails setup | Never delete or replace it |
+| Attached computer is reset or bot is removed | Detach locally; do not call Orgo DELETE |
+| Attached computer is renamed in Bops | Do not apply desktop changes to the external machine |
+| Orgo DELETE requested through any lifecycle path | Central guard refuses attached computer |
+| Owner independently opens swift-prism outside Bops | Existing access and data remain intact |
+| Safe onboarding trial | Only explicitly approved, isolated Bops files/services created; existing data preserved |
+
+Do not interpret successful typechecking as evidence that these integration scenarios passed. The live retry requires separate owner approval and verified integration tests.
