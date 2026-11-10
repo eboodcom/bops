@@ -161,3 +161,6 @@ The read-only desktop preview now fetches the authenticated `attached-readiness`
 
 ## Phase 24 cancellation and fail-closed evidence tests
 The desktop preview now aborts in-flight screenshot requests when the user switches screens or the bot page unmounts, and aborts in-flight screen discovery/readiness requests when the bot changes. The existing request sequence check still prevents a late response from replacing a newer screenshot. Readiness unit tests now explicitly reject missing, false, and string-valued evidence. These changes do not enable input, install software, or interact with the live computer. Phase 23 CI was still queued/in progress when checked; Phase 24 needs a fresh green CI result.
+
+## Phase 25 privacy and stale-preview cleanup
+The authenticated attachment preflight now explicitly marks successful ownership/computer metadata responses `Cache-Control: no-store, private` and `X-Content-Type-Options: nosniff`. Switching a desktop screen clears the prior still and displays an explicit refresh instruction, rather than leaving a stale screenshot-success message. Phase 24 dedicated attachment CI passed (run 42903898665); main CI was still in progress when inspected. These Phase 25 commits require fresh CI. No deployment, attach flag changes, or Orgo VM interaction.
