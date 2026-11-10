@@ -23,3 +23,18 @@ test("even complete deployment evidence never grants mutating action permission"
   assert.equal(result.deploymentReady, true);
   assert.equal(result.mutatingActionsAuthorized, false);
 });
+
+test("unknown, missing or false evidence fails closed", () => {
+  for (const evidence of [
+    {}, { ownerVerified: false }, { ownerVerified: "true" },
+    { ownerVerified: true, identityVerified: true, computerRunning: true,
+      attachmentRecorded: true, screenshotVerified: "true" },
+  ]) {
+    const result = attachedComputerReadiness(evidence);
+    assert.equal(result.readOnlyReady, false);
+    assert.equal(result.deploymentReady, false);
+    assert.equal(result.mutatingActionsAuthorized, false);
+    assert.ok(result.missingReadOnlyEvidence.length > 0);
+    assert.ok(result.missingReleaseEvidence.length > 0);
+  }
+});
