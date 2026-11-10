@@ -4,6 +4,7 @@ import { bot, stateEpoch } from "@/lib/server/store";
 import { orgo, ownedWorkspaces } from "@/lib/server/orgo";
 import { classifyExternalComputer } from "@/lib/external-orgo-diagnostics";
 import { authorizeAttachedClick, validAttachedClick } from "@/lib/external-desktop-action";
+import { sameOriginWrite } from "@/lib/external-desktop-keyboard";
 
 /**
  * One explicit owner-confirmed click through Orgo's authenticated API.
@@ -12,7 +13,7 @@ import { authorizeAttachedClick, validAttachedClick } from "@/lib/external-deskt
 export async function POST(request: Request) {
   const blocked = notReady();
   if (blocked) return blocked;
-  const authenticated = Boolean(process.env.BOPS_UI_TOKEN) && fromBopsWindow(request);
+  const authenticated = Boolean(process.env.BOPS_UI_TOKEN) && fromBopsWindow(request) && sameOriginWrite(request);
   if (!authenticated || process.env.BOPS_EXTERNAL_ORGO_DESKTOP_CLICK_ENABLED !== "true")
     return Response.json({ error: "Attached desktop control is disabled or unauthorized." }, { status: 403 });
   let payload: Record<string, unknown>;
