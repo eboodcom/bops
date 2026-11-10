@@ -919,6 +919,10 @@ export const orgo = {
     const where = c.workspace_id ?? c.project_id;
     if ((!where || !(await bopsProjects()).includes(where)) && (!where || where !== process.env.BOPS_ORGO_WORKSPACE))
       throw new Error(`refusing to delete ${computerId}: not a Bops computer`);
+    // Async workspace lookup may have crossed a signed-in account/state swap.
+    // Fail closed before DELETE; also recheck the external attachment marker.
+    if (epoch !== stateEpoch() || getState().bots.some((b) => b.computerId === computerId && b.attachedOrgoComputer))
+      throw new Error("Refusing to delete a computer after state change or external attachment");
     await call("DELETE", `/computers/${computerId}`);
     changed();
     recordUsage("computer.remove", {}, epoch);
