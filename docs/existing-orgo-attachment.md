@@ -143,3 +143,6 @@ The existing Computers (Orgo) section in Bops now displays a `View desktop (read
 
 ## Phase 18 CI repair and preview race hardening
 The Phase 17 dedicated CI completed typecheck and all attachment tests successfully but failed ESLint's React `set-state-in-effect` rule in the new preview. Removed synchronous state resets from the effect, remount the preview on botId changes, and added request sequencing so a delayed screenshot response cannot replace the selected screen's newer image. The branch still requires a fresh successful CI run. No live Orgo commands or VM changes were made.
+
+## Phase 19 CI and desktop input validation
+At Phase 18 HEAD `bca44be3d3ed1f0fc78200446f1bd57859392646`, dedicated Existing Orgo attachment checks completed successfully. The main CI cloud-tests and check jobs also passed, with the overall workflow still in progress at inspection. Phase 19 now validates Orgo screen metadata using the same strict public screen projection before click and type actions, rejecting duplicate IDs, malformed screen dimensions, and unexpected screen details. Both input routes remain disabled by default, with no live VM interactions. Fresh CI is required for Phase 19 HEAD. A successful CI run does not establish that the attached Orgo computer has been connected or operated in production.
