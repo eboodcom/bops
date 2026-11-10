@@ -93,7 +93,7 @@ export function renameBot(botId: string, name: string): { ok: true } | { error: 
   void import("./phone").then(({ renameAgents }) => renameAgents(botId)).catch((e: Error) => console.warn(`[rename] ${botId} phone: ${e.message}`));
   void import("./channels").then(({ renameInChannels }) => renameInChannels(botId)).catch((e: Error) => console.warn(`[rename] ${botId} channels: ${e.message}`));
   // Just the name on the desktop: Chrome keeps running.
-  if (b.computerId) void import("./desktop").then(({ applyDesktop }) => applyDesktop(b, { restartChrome: false })).catch((e: Error) => console.warn(`[rename] ${botId} desktop: ${e.message}`));
+  if (b.computerId && !b.attachedOrgoComputer) void import("./desktop").then(({ applyDesktop }) => applyDesktop(b, { restartChrome: false })).catch((e: Error) => console.warn(`[rename] ${botId} desktop: ${e.message}`));
   return { ok: true };
 }
 
