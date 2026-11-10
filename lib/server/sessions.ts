@@ -1527,6 +1527,7 @@ export async function ensureComputer(botId: string): Promise<void> {
     const kept = !!id && !neverReady;
     const deleted =
       neverReady &&
+      !b.attachedOrgoComputer &&
       (broken !== undefined || id === failedBefore) &&
       (await orgo.remove(id).then(() => true, (err) => err instanceof OrgoError && (err.status === 403 || err.status === 404)));
     if (swapped()) return;
@@ -1824,6 +1825,19 @@ export async function resetComputer(botId: string) {
   const computerId = b.computerId;
   // Deleted on Orgo's site already, or out of this account's reach: nothing to delete, only to forget
   // (and the plan read again, as Orgo no longer counts it).
+  if (b.attachedOrgoComputer) {
+    // An attached computer belongs to the user, not Bops. Detach locally without destroying it.
+    forgetScreens(computerId);
+    update(() => {
+      b.computerId = undefined;
+      b.attachedOrgoComputer = undefined;
+      b.freeComputer = undefined;
+      b.computerNeverReady = undefined;
+      b.computerStatus = "none";
+      b.tailnet = undefined;
+    });
+    return;
+  }
   await orgo.remove(computerId).catch((e: unknown) => {
     if (!computerGone(e)) throw e;
     forgetPlan();
