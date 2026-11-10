@@ -33,6 +33,7 @@ export async function GET(request: Request) {
     return Response.json({
       computerId, status: computer.status, readOnly: true,
       ownerVerified: evidence.ownerVerified, identityVerified: evidence.identityMatches,
+      computerRunning: evidence.running,
       ...readiness,
     }, { headers: { "Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff" } });
   } catch {
