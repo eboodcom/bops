@@ -22,3 +22,13 @@ Target: user-owned Orgo computer `swift-prism`, ID `cc5f24e5-3e35-4ca2-ad4a-2ca8
 
 ## Operational safety
 Never commit an Orgo API key. Never delete, stop, suspend, resize or reconfigure `swift-prism` as part of testing. Existing computer usage can continue to incur Orgo charges independently of Bops.
+
+## Preparation batch — 10 November 2026
+- Added an authenticated-window-only, **read-only** Orgo preflight route. It returns `canAttachNow: false` by design; it does not write to Orgo or change Bops assignment.
+- The preflight fails closed if `BOPS_UI_TOKEN` is unset. A self-hosted server must establish an owner-authenticated control path before exposing attachment controls.
+- Added a central `orgo.remove` guard for currently assigned externally attached computers, plus a desktop rename guard and state-epoch checks around the asynchronous attachment service.
+- Added `.github/workflows/existing-orgo-attachment.yml` to request TypeScript and targeted ESLint checks. **No successful CI run has yet been observed.**
+- Draft PR #1 opened for review. **Do not merge or deploy.**
+
+## Explicit stop point before retrying swift-prism
+Do not run the attachment service, call any computer mutation API, or try a live Boppy task until (1) owner authentication is valid on the hosted deployment, (2) owner/workspace is independently confirmed, (3) an isolated non-destructive onboarding plan is implemented, (4) lifecycle operations are audited, and (5) build/integration tests pass. Recheck consent immediately before the first live computer operation. The owner's personal Orgo workspace must remain independently usable.
