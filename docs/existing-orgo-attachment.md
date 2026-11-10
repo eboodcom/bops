@@ -83,3 +83,6 @@ The preflight now uses `ownerWorkspaceForComputer`, which requires **both** an e
 
 ## Attachment service ownership gate
 The internal `attachExistingOrgoComputer` service now checks `ownedWorkspaces()` and `ownerWorkspaceForComputer()` as well as the Orgo computer GET **before any Bops assignment is stored**. If owner-role workspace membership cannot be confirmed, the service refuses attachment. The preflight and internal service now enforce the same evidence rule. This is not a public authenticated attach route, and it still does not enable computer control or onboarding.
+
+## Isolated runtime planning checkpoint
+`lib/external-orgo-onboarding.ts` now provides an inert, non-executable onboarding plan with the proposed dedicated root `/opt/bops-attached`, read-only inspection steps, and a list of possible later changes. Its return value explicitly declares `requiresOwnerApproval: true` and `executable: false`. Tests enforce that it cannot approve itself or become an implicit live action. **No runtime installer or command executor exists for attached machines yet.** Before any implementation, review how runner credentials, service names, ports, desktop sessions, upgrades, and uninstall work without touching existing user data.
