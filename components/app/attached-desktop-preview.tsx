@@ -87,7 +87,7 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
       <p role="status">Verification: {readiness?.error ?? (readiness ? (readiness.ownerVerified && readiness.identityVerified && readiness.computerRunning ? "Computer identity and ownership verified; screenshot and deployment approval still require separate verification." : "Computer identity or ownership not verified.") : "Checking owner and computer identity…")}</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, margin: "18px 0" }}>
         <label htmlFor="attached-screen">Screen</label>
-        <select id="attached-screen" value={selected} onChange={(event) => { requestSequence.current++; screenshotAbort.current?.abort(); setBusy(false); setSelected(event.target.value); setImageUrl(null); }} disabled={busy || !screens.length}>
+        <select id="attached-screen" value={selected} onChange={(event) => { requestSequence.current++; screenshotAbort.current?.abort(); setBusy(false); setSelected(event.target.value); setImageUrl(null); setStatus("Screen changed. Refresh screenshot to view the selected screen."); }} disabled={busy || !screens.length}>
           {screens.map((screen) => <option key={screen.id} value={screen.id}>{screen.id} ({screen.width} × {screen.height})</option>)}
         </select>
         <button type="button" onClick={() => void refresh()} disabled={!selected || busy}>Refresh screenshot</button>
