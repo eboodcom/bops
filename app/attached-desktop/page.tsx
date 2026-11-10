@@ -11,5 +11,5 @@ export default async function AttachedDesktopPage({ searchParams }: {
   if (!authenticated) return <main style={{ padding: 24 }}>Authenticated Bops window required.</main>;
   const { botId } = await searchParams;
   if (!botId || botId.length > 128) return <main style={{ padding: 24 }}>Choose an attached main bot using its botId.</main>;
-  return <main><AttachedDesktopPreview botId={botId} /></main>;
+  return <main><AttachedDesktopPreview key={botId} botId={botId} /></main>;
 }
