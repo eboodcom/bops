@@ -5,6 +5,7 @@ import { bot, getState, stateEpoch } from "@/lib/server/store";
 import { attachmentEligibility } from "@/lib/attachment-policy";
 import { ownerWorkspaceForComputer } from "@/lib/attachment-ownership";
 import { planExternalOnboarding } from "@/lib/external-orgo-onboarding";
+import { matchesAttachedComputerId } from "@/lib/external-orgo-identity";
 import { parseDesktopJson } from "@/lib/external-desktop-request";
 import { sameOriginWrite } from "@/lib/external-desktop-keyboard";
 
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
   const epoch = stateEpoch();
   try {
     const [computer, workspaces] = await Promise.all([orgo.computer(computerId), ownedWorkspaces()]);
-    const identityVerified = typeof computer.id === "string" && computer.id.toLowerCase() === computerId.toLowerCase();
+    const identityVerified = matchesAttachedComputerId(computerId, computer.id);
     const ownerWorkspace = identityVerified ? ownerWorkspaceForComputer(workspaces, computerId) : undefined;
     // Do not return details from an old account after a hosted state swap.
     if (epoch !== stateEpoch() || bot(botId) !== target ||
