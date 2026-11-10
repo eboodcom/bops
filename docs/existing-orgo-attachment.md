@@ -140,3 +140,6 @@ The authenticated `/attached-desktop?botId=...` page now renders a read-only att
 
 ## Phase 17 navigation and attachment-request hardening
 The existing Computers (Orgo) section in Bops now displays a `View desktop (read-only)` link only for the main bot when it has an attached computer ID. The link opens the authenticated `/attached-desktop?botId=...` preview in a new tab. This integrates the preview into the existing UI without enabling click, typing or autonomous controls. The state-changing attach-existing endpoint now also requires a same-origin request and a bounded JSON object with only the three expected fields. These are source changes on the draft branch, not a deployment. CI and owner-approved live verification remain outstanding.
+
+## Phase 18 CI repair and preview race hardening
+The Phase 17 dedicated CI completed typecheck and all attachment tests successfully but failed ESLint's React `set-state-in-effect` rule in the new preview. Removed synchronous state resets from the effect, remount the preview on botId changes, and added request sequencing so a delayed screenshot response cannot replace the selected screen's newer image. The branch still requires a fresh successful CI run. No live Orgo commands or VM changes were made.
