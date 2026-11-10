@@ -29,6 +29,6 @@ export function verifyRunnerMessage(message, signature, secret, replayCache, now
   let expected;
   try { expected = signRunnerMessage(message, secret); } catch { return false; }
   if (!timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(signature, "hex"))) return false;
-  replayCache.add(message.nonce);
+  try { replayCache.add(message.nonce); } catch { return false; }
   return true;
 }
