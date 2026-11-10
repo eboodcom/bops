@@ -10,6 +10,8 @@ on:
       - 'lib/external-orgo-remote-transport.ts'
       - 'tests/external-orgo-remote-transport.test.mjs'
       - 'runner/attached/**'
+      - 'tests/attached-runner-signed-http.test.mjs'
+      - 'tests/attached-runner-signed-client.test.mjs'
       - 'tests/attached-runner-protocol.test.mjs'
       - 'tests/attached-runner-replay-cache.test.mjs'
       - 'lib/external-runner-client.ts'
@@ -66,6 +68,6 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
       - name: Test attachment policy
-        run: node --experimental-strip-types --test tests/existing-orgo-attachment.test.mjs tests/existing-orgo-ownership.test.mjs tests/external-orgo-onboarding.test.mjs tests/external-orgo-runtime-policy.test.mjs tests/external-attach-authorization.test.mjs tests/external-orgo-service.test.mjs tests/external-orgo-cleanup.test.mjs tests/external-orgo-diagnostics.test.mjs tests/external-orgo-release-gate.test.mjs tests/external-orgo-rollout.test.mjs tests/attached-runner-health.test.mjs tests/attached-runner-auth.test.mjs tests/external-runner-client.test.mjs tests/external-orgo-remote-transport.test.mjs tests/attached-runner-protocol.test.mjs tests/attached-runner-replay-cache.test.mjs
+        run: node --experimental-strip-types --test tests/existing-orgo-attachment.test.mjs tests/existing-orgo-ownership.test.mjs tests/external-orgo-onboarding.test.mjs tests/external-orgo-runtime-policy.test.mjs tests/external-attach-authorization.test.mjs tests/external-orgo-service.test.mjs tests/external-orgo-cleanup.test.mjs tests/external-orgo-diagnostics.test.mjs tests/external-orgo-release-gate.test.mjs tests/external-orgo-rollout.test.mjs tests/attached-runner-health.test.mjs tests/attached-runner-auth.test.mjs tests/external-runner-client.test.mjs tests/external-orgo-remote-transport.test.mjs tests/attached-runner-protocol.test.mjs tests/attached-runner-replay-cache.test.mjs tests/attached-runner-signed-http.test.mjs tests/attached-runner-signed-client.test.mjs
       - name: Lint changed integration files
         run: npx eslint lib/external-orgo-remote-transport.ts lib/external-runner-client.ts lib/external-orgo-release-gate.ts lib/external-orgo-rollout.ts lib/external-orgo-diagnostics.ts app/api/computers/attached-diagnostics/route.ts lib/external-orgo-service.ts lib/external-orgo-cleanup.ts app/api/computers/attach-existing/route.ts lib/external-attach-authorization.ts lib/external-orgo-runtime-policy.ts lib/external-orgo-onboarding.ts lib/attachment-ownership.ts lib/attachment-policy.ts lib/server/bots.ts lib/server/orgo.ts lib/server/sessions.ts lib/types.ts app/api/computers/attach-preflight/route.ts
