@@ -18,7 +18,7 @@ export function attachmentEligibility(
     return "This bot already has a computer or is setting one up.";
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(computerId))
     return "Invalid Orgo computer ID.";
-  if (assignedComputerIds.includes(computerId))
+  if (assignedComputerIds.some((assigned) => assigned?.toLowerCase() === computerId.toLowerCase()))
     return "Computer already assigned.";
   return null;
 }
