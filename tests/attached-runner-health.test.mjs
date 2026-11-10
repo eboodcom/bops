@@ -11,13 +11,17 @@ test("runner defaults to loopback and an unprivileged port", () => {
     assert.throws(() => parseRunnerPort(value));
   }
 });
-test("runner responds to health without exposing computer control", async (t) => {
-  const server = createAttachedHealthServer();
+test("runner responds to authenticated health without exposing computer control", async (t) => {
+  const token = "a".repeat(48);
+  assert.throws(() => createAttachedHealthServer(undefined));
+  const server = createAttachedHealthServer(token);
   await new Promise((resolve) => server.listen(0, HOST, resolve));
   t.after(() => new Promise((resolve) => server.close(resolve)));
   const address = server.address();
   const base = "http://" + HOST + ":" + address.port;
-  const health = await fetch(base + "/health");
+  const unauthorized = await fetch(base + "/health");
+  assert.equal(unauthorized.status, 401);
+  const health = await fetch(base + "/health", { headers: { Authorization: "Bearer " + token } });
   assert.equal(health.status, 200);
   assert.deepEqual(await health.json(), {
     service: "bops-attached-runner", status: "healthy",
