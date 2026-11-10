@@ -20,3 +20,23 @@ test("rejects malformed identifiers and duplicate assignments", () => {
   assert.equal(attachmentEligibility(main, "not-a-uuid", []), "Invalid Orgo computer ID.");
   assert.equal(attachmentEligibility(main, id, [undefined, id]), "Computer already assigned.");
 });
+
+test("rejects a bot that already owns a different computer", () => {
+  assert.match(attachmentEligibility({ ...main, computerId: "different" }, id, []) ?? "", /already has/);
+});
+test("accepts an uppercase UUID and rejects malformed lookalikes", () => {
+  assert.equal(attachmentEligibility(main, id.toUpperCase(), []), null);
+  for (const candidate of ["", " "+id, id+" ", id.slice(0, -1), id.replaceAll("-", ""), "../"+id]) {
+    assert.equal(attachmentEligibility(main, candidate, []), "Invalid Orgo computer ID.");
+  }
+});
+test("rejects duplicate assignment regardless of other empty bot slots", () => {
+  assert.equal(attachmentEligibility(main, id, [undefined, "", id, undefined]), "Computer already assigned.");
+});
+test("does not mutate candidate or existing assignments during validation", () => {
+  const candidate = Object.freeze({ ...main });
+  const assigned = Object.freeze([undefined, "another-id"]);
+  assert.equal(attachmentEligibility(candidate, id, assigned), null);
+  assert.deepEqual(candidate, main);
+  assert.deepEqual(assigned, [undefined, "another-id"]);
+});
