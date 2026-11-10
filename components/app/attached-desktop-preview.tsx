@@ -14,9 +14,6 @@ export function AttachedDesktopPreview({ botId }: { botId: string }) {
 
   useEffect(() => {
     let active = true;
-    setScreens([]);
-    setSelected("");
-    setImageUrl(null);
     async function load() {
       try {
         const response = await fetch("/api/computers/attached-screens?botId=" + encodeURIComponent(botId), { cache: "no-store" });
