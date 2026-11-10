@@ -31,7 +31,8 @@ export async function POST(request: Request) {
   try {
     const computer = await orgo.computer(computerId);
     // Do not return details from an old account after a hosted state swap.
-    if (epoch !== stateEpoch() || bot(botId) !== target)
+    if (epoch !== stateEpoch() || bot(botId) !== target ||
+        attachmentEligibility(bot(botId), computerId, getState().bots.map((b) => b.computerId)))
       return Response.json({ error: "Account state changed. Retry the check." }, { status: 409 });
     return Response.json({
       accessible: true,
