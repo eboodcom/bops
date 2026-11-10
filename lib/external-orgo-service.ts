@@ -46,6 +46,6 @@ export function isWithinExternalRunnerRoot(path: string): boolean {
   if (!path.startsWith(EXTERNAL_RUNNER_ROOT + "/")) return false;
   if (path.includes("\\") || path.includes("\0")) return false;
   const parts = path.split("/");
-  if (parts.some((part) => part === "." || part === ".." || part === "" && parts.indexOf(part) !== 0)) return false;
+  if (parts.some((part, index) => part === "." || part === ".." || (part === "" && index !== 0))) return false;
   return true;
 }
