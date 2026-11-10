@@ -214,6 +214,8 @@ export async function attachExistingOrgoComputer(botId: string, computerId: stri
   } catch {
     return { error: "Orgo could not verify the computer and its owner workspace." };
   }
+  if (!computer || typeof computer.id !== "string" || computer.id.toLowerCase() !== computerId.toLowerCase())
+    return { error: "Orgo returned a different computer identity." };
   if (!ownerVerified)
     return { error: "Orgo did not independently confirm ownership of this computer." };
   if (!computer || computer.status !== "running")
