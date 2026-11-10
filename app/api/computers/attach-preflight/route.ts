@@ -5,6 +5,8 @@ import { bot, getState, stateEpoch } from "@/lib/server/store";
 import { attachmentEligibility } from "@/lib/attachment-policy";
 import { ownerWorkspaceForComputer } from "@/lib/attachment-ownership";
 import { planExternalOnboarding } from "@/lib/external-orgo-onboarding";
+import { parseDesktopJson } from "@/lib/external-desktop-request";
+import { sameOriginWrite } from "@/lib/external-desktop-keyboard";
 
 /**
  * Read-only preflight for attaching an existing Orgo computer.
@@ -19,9 +21,12 @@ export async function POST(request: Request) {
   if (!process.env.BOPS_UI_TOKEN || !fromBopsWindow(request))
     return Response.json({ error: "Only the Bops app can inspect an attachment." }, { status: 403 });
 
-  let body: { botId?: unknown; computerId?: unknown };
-  try { body = await request.json(); }
-  catch { return Response.json({ error: "Invalid JSON." }, { status: 400 }); }
+  if (!sameOriginWrite(request))
+    return Response.json({ error: "Same-origin request required." }, { status: 403 });
+  const body = await parseDesktopJson(request);
+  if (!body) return Response.json({ error: "Invalid or oversized JSON." }, { status: 400 });
+  if (Object.keys(body).sort().join(",") !== "botId,computerId")
+    return Response.json({ error: "Unexpected preflight fields." }, { status: 400 });
 
   const botId = typeof body.botId === "string" ? body.botId : "";
   const computerId = typeof body.computerId === "string" ? body.computerId : "";
