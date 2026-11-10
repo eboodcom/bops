@@ -1,4 +1,5 @@
 import "server-only";
+import { attachmentEligibility } from "@/lib/attachment-policy";
 import { botChatId, isScreenWatch, live, sharesComputer, workspaceOf, type Bot } from "@/lib/types";
 import { bot, getState, stateEpoch, update } from "./store";
 import { botsNamedInDeleted } from "./deleted";
@@ -199,13 +200,8 @@ export async function setComputer(botId: string, mode: "shared" | "own"): Promis
  */
 export async function attachExistingOrgoComputer(botId: string, computerId: string): Promise<{ ok: true } | { error: string }> {
   const b = bot(botId);
-  if (!b || !b.isMain) return { error: "Only a main bot can attach an existing computer." };
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(computerId))
-    return { error: "Enter a valid Orgo computer ID." };
-  if (b.computerId || b.computerStatus === "cloning")
-    return { error: "This bot already has a computer or is setting one up." };
-  if (getState().bots.some((x) => x.computerId === computerId))
-    return { error: "That computer is already assigned to a bot." };
+  const reason = attachmentEligibility(b, computerId, getState().bots.map((x) => x.computerId));
+  if (reason) return { error: reason };
   const epoch = stateEpoch();
   const { orgo } = await import("./orgo");
   let computer: Awaited<ReturnType<typeof orgo.computer>>;
