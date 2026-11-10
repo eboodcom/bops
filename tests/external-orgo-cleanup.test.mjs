@@ -12,6 +12,7 @@ test("cleanup refuses unapproved, unrelated service, or outside paths", () => {
     { paths: ["/opt/bops-attached/releases/v1", "/opt/ib-bops-lab"] },
     { paths: ["/opt/bops-attached/../home"] },
     { paths: ["/opt/bops-attached/data"] },
+    { paths: [] },
   ]) {
     const result = externalCleanupTargets({ ...base, ...change });
     assert.equal(result.allowed, false);
