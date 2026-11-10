@@ -4,6 +4,7 @@ import { fromBopsWindow } from "@/lib/server/ui-token";
 import { bot, stateEpoch } from "@/lib/server/store";
 import { orgo, ownedWorkspaces } from "@/lib/server/orgo";
 import { classifyExternalComputer } from "@/lib/external-orgo-diagnostics";
+import { publicAttachedScreens } from "@/lib/external-desktop-screens";
 import { authorizeAttachedType, sameOriginWrite, validAttachedText } from "@/lib/external-desktop-keyboard";
 
 /** Owner-confirmed one-shot typing only. Disabled unless explicitly enabled. */
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
       confirmation: payload.confirmation,
     });
     if (denied) return Response.json({ error: denied }, { status: 403 });
-    const screens = await orgo.screens(computerId);
+    const screens = publicAttachedScreens(await orgo.screens(computerId));
     if (!unchanged()) return Response.json({ error: "Attachment changed." }, { status: 409 });
     const screen = screens.find((item) => item.id === payload.screenId);
     if (!screen) return Response.json({ error: "Screen unavailable." }, { status: 404 });
