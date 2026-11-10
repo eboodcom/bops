@@ -7,6 +7,7 @@ import { createServer } from "node:http";
 import { authenticatedRunnerRequest, validRunnerToken } from "./auth.mjs";
 import { verifyRunnerMessage } from "./protocol.mjs";
 import { RunnerReplayCache } from "./replay-cache.mjs";
+import { RunnerRateLimiter } from "./rate-limit.mjs";
 
 export const HOST = "127.0.0.1";
 export const DEFAULT_PORT = 43211;
@@ -14,7 +15,13 @@ export const DEFAULT_PORT = 43211;
 export function createAttachedHealthServer(token) {
   if (!validRunnerToken(token)) throw new Error("A strong runner token is required.");
   const replayCache = new RunnerReplayCache();
-  return createServer(async (request, response) => {
+  const limiter = new RunnerRateLimiter();
+  const server = createServer(async (request, response) => {
+    if (!limiter.allow()) {
+      response.writeHead(429, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+      response.end(JSON.stringify({ error: "Rate limit exceeded" }));
+      return;
+    }
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("Content-Type", "application/json; charset=utf-8");
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -75,6 +82,10 @@ export function createAttachedHealthServer(token) {
       version: 1,
     }));
   });
+  server.requestTimeout = 5_000;
+  server.headersTimeout = 5_000;
+  server.keepAliveTimeout = 2_000;
+  return server;
 }
 
 export function parseRunnerPort(value) {
